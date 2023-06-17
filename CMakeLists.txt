@@ -6,6 +6,7 @@ project(cudASCII LANGUAGES C CUDA)
 include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/include)
 
 add_executable("${PROJECT_NAME}"
-    src/cudASCII.cu)
+    src/cudASCII.cu
+    src/image.cu)
 
 set_target_properties(cudASCII PROPERTIES CUDA_ARCHITECTURES "native")

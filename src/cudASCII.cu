@@ -3,9 +3,10 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
+#include "image.h"
 #include "constants.h"
 
-__global__ void ascii(char *greyscale, char *picture_data, char *ascii_value) {
+__global__ void ascii(char *greyscale, char *image_data, char *ascii_value) {
 
         int luminance = 0; // temp
         ascii_value[threadIdx.x * WIDTH + blockIdx.x] = greyscale[luminance];
@@ -13,35 +14,42 @@ __global__ void ascii(char *greyscale, char *picture_data, char *ascii_value) {
         return;
 }
 
-int main() {
+int main(int argc, char **argv) {
+
+        if (argc < 2) {
+                printf("Did not provide a filepath\n");
+                return -1;
+        }
 
         // Initial data on host
-        const char *h_greyscale                           = GREYSCALE;
-        char       h_picture_data[SRC_WIDTH * SRC_HEIGHT] = { 0 };
-        char       h_ascii_value[WIDTH * HEIGHT]          = { 0 };
+        const char    *h_greyscale = GREYSCALE;
+        struct image_t h_image;
+        char           h_ascii_value[WIDTH * HEIGHT] = { 0 };
+
+        read_image(&h_image, argv[1]);
 
         // Pointers to data on device
         char *d_greyscale;
-        char *d_picture_data;
+        char *d_image_data;
         char *d_ascii_value;
 
-        cudaMalloc(&d_greyscale   , NUM_ASCII);
-        cudaMalloc(&d_picture_data, sizeof(h_picture_data));
-        cudaMalloc(&d_ascii_value , sizeof(h_ascii_value));
+        cudaMallocHost(&d_greyscale   , NUM_ASCII);
+        cudaMallocHost(&d_image_data, sizeof(h_image.data));
+        cudaMallocHost(&d_ascii_value , sizeof(h_ascii_value));
 
         // Copy data from host to device
-        cudaMemcpy(d_greyscale   , h_greyscale   , NUM_ASCII             , cudaMemcpyHostToDevice);
-        cudaMemcpy(d_picture_data, h_picture_data, sizeof(h_picture_data), cudaMemcpyHostToDevice);
+        cudaMemcpy(d_greyscale   , h_greyscale , NUM_ASCII           , cudaMemcpyHostToDevice);
+        cudaMemcpy(d_image_data  , h_image.data, sizeof(h_image.data), cudaMemcpyHostToDevice);
 
-        ascii<<<WIDTH, HEIGHT>>>(d_greyscale, d_picture_data, d_ascii_value);
+        ascii<<<WIDTH, HEIGHT>>>(d_greyscale, d_image_data, d_ascii_value);
 
         // Copy data from device to host
         cudaMemcpy(h_ascii_value, d_ascii_value, sizeof(h_ascii_value), cudaMemcpyDeviceToHost);
 
         // Clean up memory
-        cudaFree(d_ascii_value);
-        cudaFree(d_picture_data);
-        cudaFree(d_greyscale);
+        cudaFreeHost(d_ascii_value);
+        cudaFreeHost(d_image_data);
+        cudaFreeHost(d_greyscale);
 
         for (int i = 0; i < sizeof(h_ascii_value); ++i) {
                 if (h_ascii_value[i] != h_greyscale[0]) {
