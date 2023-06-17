@@ -10,7 +10,4 @@
 #define SCALE_WIDTH  8
 #define SCALE_HEIGHT 4
 
-#define WIDTH  SRC_WIDTH  / SCALE_WIDTH
-#define HEIGHT SRC_HEIGHT / SCALE_HEIGHT
-
 #endif
