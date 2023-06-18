@@ -3,15 +3,20 @@
 __host__ int load_bmp(struct bmp_t *bmp, const char *filepath) {
 
     FILE *file = fopen(filepath, "rb");
+
+    if (!file) {
+        return -1;
+    }
+
     fread(&(bmp->header), sizeof(bmp_header_t), 1, file);
 
-    bmp->pixels = (uint8_t*)malloc(bmp->header.width * bmp->header.height * (bmp->header.bpp / CHAR_BIT));
+    size_t data_size = bmp->header.file_size - sizeof(bmp_header_t);
+    bmp->pixels = (uint8_t*)malloc(data_size);
 
-    fread(bmp->pixels, bmp->header.width * bmp->header.height * (bmp->header.bpp / CHAR_BIT), 1, file);
-
+    fread(bmp->pixels, data_size, 1, file);
     fclose(file);
 
-    return 0;
+    return data_size;
 }
 
 __host__ void print_bmp_header(struct bmp_header_t *header) {

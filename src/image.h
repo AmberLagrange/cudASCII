@@ -17,6 +17,7 @@ struct image_t {
     int bytes_per_pixel;
 
     uint8_t *data;
+    size_t data_size;
 };
 
 int __host__ read_image(struct image_t *image, const char *filepath);

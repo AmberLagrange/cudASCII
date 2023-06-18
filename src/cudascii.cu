@@ -33,7 +33,7 @@ __global__ void ascii(char *greyscale, struct image_t *image, struct ascii_t *as
 
 __host__ int test_blank(struct ascii_t *ascii, const char *greyscale) {
 
-    for (int i = 0; i < ascii->width * ascii->height; ++i) {
+    for (int i = 0; i < ascii->data_size; ++i) {
         if (ascii->data[i] != greyscale[0]) {
             printf("Error! Did not copy over properly!\nIndex %d has value %d\n", i, ascii->data[i]);
             return -1;
@@ -91,21 +91,21 @@ int main(int argc, char **argv) {
     cudaMemcpy(d_image, &h_image, sizeof(h_image), cudaMemcpyHostToDevice);
 
     // Create and copy image data over
-    cudaMallocHost(&(d_image->data), d_image->width * d_image->height * d_image->bytes_per_pixel);
-    cudaMemcpy(d_image->data, h_image.data, d_image->width * d_image->height * d_image->bytes_per_pixel, cudaMemcpyHostToDevice);
+    cudaMallocHost(&(d_image->data), d_image->data_size);
+    cudaMemcpy(d_image->data, h_image.data, d_image->data_size, cudaMemcpyHostToDevice);
 
     // Create and copy ascii struct data
     cudaMallocHost(&d_ascii, sizeof(struct ascii_t));
     cudaMemcpy(d_ascii, &h_ascii, sizeof(struct ascii_t), cudaMemcpyHostToDevice);
 
     // Create ascii data
-    cudaMallocHost(&(d_ascii->data), d_ascii->width * d_ascii->height);
+    cudaMallocHost(&(d_ascii->data), d_ascii->data_size);
 
     // Run the kernel
     ascii<<<h_ascii.width, h_ascii.height>>>(d_greyscale, d_image, d_ascii);
 
     // Copy ascii data from device to host
-    cudaMemcpy(h_ascii.data, d_ascii->data, h_ascii.width * h_ascii.height, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_ascii.data, d_ascii->data, h_ascii.data_size, cudaMemcpyDeviceToHost);
 
     // Tests
     //test_blank(&h_ascii, h_greyscale);
