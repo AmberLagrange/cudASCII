@@ -7,7 +7,7 @@
 #define SRC_WIDTH  1920
 #define SRC_HEIGHT 1080
 
-#define SCALE_WIDTH  2
-#define SCALE_HEIGHT 3
+#define SCALE_WIDTH  1
+#define SCALE_HEIGHT 1
 
 #endif

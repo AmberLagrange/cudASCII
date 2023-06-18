@@ -24,6 +24,8 @@ __global__ void ascii(char *greyscale, struct image_t *image, struct ascii_t *as
     }
 
     average /= (image->bytes_per_pixel * ascii->scale_width * ascii->scale_height);
+    average = (ascii->dark_mode) ? (255 - average) : average;
+
     ascii->data[row * ascii->width + col] = greyscale[(average * (NUM_ASCII - 2)) / 255];
 
     return;
@@ -73,7 +75,7 @@ int main(int argc, char **argv) {
 
     // Host ascii data
     struct ascii_t h_ascii;
-    init_ascii(&h_ascii, h_image.width, SCALE_WIDTH, h_image.height, SCALE_HEIGHT);
+    init_ascii(&h_ascii, h_image.width, SCALE_WIDTH, h_image.height, SCALE_HEIGHT, 1);
 
     // Pointers to data on device
     char       *d_greyscale;
