@@ -2,12 +2,14 @@
 #define ASCII_H
 
 #include "cuda_runtime.h"
-#include "device_launch_parameters.h"
 
 #include <stdint.h>
 #include "constants.h"
 
 struct ascii_t {
+    int scale_width;
+    int scale_height;
+
     int width;
     int height;
 

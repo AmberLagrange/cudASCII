@@ -10,8 +10,21 @@
 
 __global__ void ascii(char *greyscale, struct image_t *image, struct ascii_t *ascii) {
 
-    int luminance = 0; // temp
-    ascii->data[threadIdx.x * ascii->width + blockIdx.x] = greyscale[luminance];
+    int average = 0;
+
+    int row = threadIdx.x;
+    int col = blockIdx.x;
+
+    for (int r = row * ascii->scale_height; r < (row + 1) * ascii->scale_height; ++r) {
+        for (int c = col * ascii->scale_width; c < (col + 1) * ascii->scale_width; ++c) {
+            for (int i = 0; i < image->bytes_per_pixel; ++i) {
+                average += image->data[(r * image->width + c) * image->bytes_per_pixel + i];
+            }
+        }
+    }
+
+    average /= (image->bytes_per_pixel * ascii->scale_width * ascii->scale_height);
+    ascii->data[row * ascii->width + col] = greyscale[(average * (NUM_ASCII - 2)) / 255];
 
     return;
 }
@@ -26,6 +39,18 @@ __host__ int test_blank(struct ascii_t *ascii, const char *greyscale) {
     }
 
     printf("All values were copied over successfully!\n");
+
+    return 0;
+}
+
+__host__ int test_shrek(struct ascii_t *ascii, const char *greyscale) {
+
+    for (int row = ascii->height - 1; row >= 0 ; --row) {
+        for (int col = 0; col < ascii->width; ++col) {
+            printf("%c", ascii->data[row * ascii->width + col]);
+        }
+        printf("\n");
+    }
 
     return 0;
 }
@@ -64,8 +89,8 @@ int main(int argc, char **argv) {
     cudaMemcpy(d_image, &h_image, sizeof(h_image), cudaMemcpyHostToDevice);
 
     // Create and copy image data over
-    cudaMallocHost(&(d_image->data), d_image->width * d_image->height);
-    cudaMemcpy(d_image->data, h_image.data, d_image->width * d_image->height, cudaMemcpyHostToDevice);
+    cudaMallocHost(&(d_image->data), d_image->width * d_image->height * d_image->bytes_per_pixel);
+    cudaMemcpy(d_image->data, h_image.data, d_image->width * d_image->height * d_image->bytes_per_pixel, cudaMemcpyHostToDevice);
 
     // Create and copy ascii struct data
     cudaMallocHost(&d_ascii, sizeof(struct ascii_t));
@@ -81,7 +106,8 @@ int main(int argc, char **argv) {
     cudaMemcpy(h_ascii.data, d_ascii->data, h_ascii.width * h_ascii.height, cudaMemcpyDeviceToHost);
 
     // Tests
-    test_blank(&h_ascii, h_greyscale);
+    //test_blank(&h_ascii, h_greyscale);
+    test_shrek(&h_ascii, h_greyscale);
 
     // Clean up cuda memory
     cudaFreeHost(d_ascii->data);
