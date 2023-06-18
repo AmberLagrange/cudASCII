@@ -1,10 +1,5 @@
 #include "image.h"
 
-#include <stdio.h>
-
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
-
 // TODO: Abstract away from bmp only
 
 int __host__ read_image(struct image_t *image, const char *filepath) {
