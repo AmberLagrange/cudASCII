@@ -11,4 +11,6 @@ add_executable("${PROJECT_NAME}"
     src/ascii.cu
     src/image_types/bmp.cu)
 
+target_precompile_headers(cudASCII PRIVATE include/core.hpp)
+
 set_target_properties(cudASCII PROPERTIES CUDA_ARCHITECTURES "native")

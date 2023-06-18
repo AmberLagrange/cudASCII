@@ -13,12 +13,23 @@ __host__ int init_ascii(struct ascii_t *ascii, int src_width, int scale_width, i
     ascii->data_size = ascii->width * ascii->height;
     ascii->data = (char*)malloc(ascii->data_size);
 
+    ascii->char_set = DEFAULT_CHAR_SET;
+    ascii->char_set_size = DEFAULT_CHAR_SET_SIZE;
+
     return 0;
 }
 
 __host__ int cleanup_ascii(struct ascii_t *ascii) {
 
     free(ascii->data);
+
+    return 0;
+}
+
+int set_char_set(struct ascii_t *ascii, const char* char_set, size_t char_set_size) {
+    
+    ascii->char_set      = char_set;
+    ascii->char_set_size = char_set_size;
 
     return 0;
 }

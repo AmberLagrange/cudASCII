@@ -1,10 +1,9 @@
 #ifndef IMAGE_H
 #define IMAGE_H
 
-#include "cuda_runtime.h"
+#include "core.h"
 
 #include <stdint.h>
-#include "constants.h"
 
 #include "image_types/bmp.h"
 
@@ -17,7 +16,7 @@ struct image_t {
     int bytes_per_pixel;
 
     uint8_t *data;
-    size_t data_size;
+    size_t   data_size;
 };
 
 int __host__ read_image(struct image_t *image, const char *filepath);

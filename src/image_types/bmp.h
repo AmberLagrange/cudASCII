@@ -1,7 +1,7 @@
 #ifndef BMP_H
 #define BMP_H
 
-#include "cuda_runtime.h"
+#include "core.h"
 
 #include <stdint.h>
 #include <stdio.h>
