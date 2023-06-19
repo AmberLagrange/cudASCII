@@ -42,18 +42,23 @@ __host__ int test_blank(struct ascii_t *ascii, const char *greyscale) {
     for (int i = 0; i < ascii->data_size; ++i) {
         if (ascii->data[i] != greyscale[0]) {
             printf("Error! Did not copy over properly!\nIndex %d has value %d\n", i, ascii->data[i]);
-            return -1;
+            return E_TEST;
         }
     }
 
     printf("All values were copied over successfully!\n");
 
-    return 0;
+    return E_OK;
 }
 
 __host__ int write_image(struct ascii_t *ascii, const char *filepath) {
 
     FILE *file = fopen(filepath, "w+");
+
+    if (!file) {
+        fprintf(stderr, "Could not write image to file %s: %s\n", filepath, strerror(errno));
+        return E_FILE;
+    }
 
     for (int row = ascii->height - 1; row >= 0 ; --row) {
         for (int col = 0; col < ascii->width; ++col) {
@@ -62,7 +67,9 @@ __host__ int write_image(struct ascii_t *ascii, const char *filepath) {
         fprintf(file, "\n");
     }
 
-    return 0;
+    fclose(file);
+
+    return E_OK;
 }
 
 __host__ int image_to_ascii(ascii_t *h_ascii, const char *filepath) {
@@ -99,6 +106,7 @@ __host__ int image_to_ascii(ascii_t *h_ascii, const char *filepath) {
 
     // Run the kernel
     convert_to_ascii<<<d_ascii->width, d_ascii->height>>>(d_ascii, d_image);
+    gpu_check_error(cudaPeekAtLastError());
 
     // Copy ascii data from device to host
     gpu_check_error(cudaMemcpy(h_ascii->data, d_ascii->data, h_ascii->data_size, cudaMemcpyDeviceToHost));
@@ -115,26 +123,30 @@ __host__ int image_to_ascii(ascii_t *h_ascii, const char *filepath) {
     // Clean up host memory
     cleanup_image(&h_image);
 
-    return 0;
+    return E_OK;
 }
 
 int main(int argc, char **argv) {
 
     if (argc < 2) {
         fprintf(stderr, "Did not provide an image filepath!\n");
-        return -1;
+        return E_FILE;
     }
 
     if (argc < 3) {
         fprintf(stderr, "Did not provide a filepath to write to!\n");
-        return -2;
+        return E_FILE;
     }
 
     struct ascii_t ascii;
 
     image_to_ascii(&ascii, argv[1]);
-    write_image(&ascii, argv[2]);
+
+    if (int ret = write_image(&ascii, argv[2])) {
+        return ret;
+    }
+
     cleanup_ascii(&ascii);
 
-    return 0;
+    return E_OK;
 }

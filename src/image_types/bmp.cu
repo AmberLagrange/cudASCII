@@ -5,7 +5,8 @@ __host__ int load_bmp(struct bmp_t *bmp, const char *filepath) {
     FILE *file = fopen(filepath, "rb");
 
     if (!file) {
-        return -1;
+        fprintf(stderr, "Could not read from file %s: %s\n", filepath, strerror(errno));
+        return E_FILE;
     }
 
     fread(&(bmp->header), sizeof(bmp_header_t), 1, file);
