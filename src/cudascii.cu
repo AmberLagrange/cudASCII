@@ -14,23 +14,39 @@ inline void gpu_assert(cudaError_t code, const char *file, int line) {
 
 __global__ void convert_to_ascii(ascii_t *ascii, image_t *image) {
 
-    int average = 0;
+    int y_average = 0;
+    int u_average = 0;
+    int v_average = 0;
 
     int row = threadIdx.x;
     int col = blockIdx.x;
 
+    int red, green, blue;
+
     for (int r = row * ascii->scale_height; r < (row + 1) * ascii->scale_height; ++r) {
         for (int c = col * ascii->scale_width; c < (col + 1) * ascii->scale_width; ++c) {
-            for (int i = 0; i < image->bytes_per_pixel; ++i) {
-                average += image->data[(r * image->width + c) * image->bytes_per_pixel + i];
-            }
+            red   = image->data[(r * image->width + c) * image->bytes_per_pixel + 0];
+            green = image->data[(r * image->width + c) * image->bytes_per_pixel + 1];
+            blue  = image->data[(r * image->width + c) * image->bytes_per_pixel + 2];
+
+            y_average += RGB_TO_Y(red, green, blue);
+            u_average += RGB_TO_U(red, green, blue);
+            v_average += RGB_TO_V(red, green, blue);
         }
     }
 
-    average /= (image->bytes_per_pixel * ascii->scale_width * ascii->scale_height);
-    average = (ascii->dark_mode) ? (255 - average) : average;
+    y_average /= (ascii->scale_width * ascii->scale_height);
+    u_average /= (ascii->scale_width * ascii->scale_height);
+    v_average /= (ascii->scale_width * ascii->scale_height);
 
-    ascii->y_data[row * ascii->width + col] = ascii->char_set[(average * (ascii->char_set_size - 1)) / 255];
+    y_average = (ascii->dark_mode) ? (255 - y_average) : y_average;
+
+    ascii->y_data[row * ascii->width + col] = ascii->char_set[(y_average * (ascii->char_set_size - 1)) / 255];
+
+    if (ascii->color_enabled) {
+        ascii->y_data[row * ascii->width + col] = u_average;
+        ascii->y_data[row * ascii->width + col] = v_average;
+    }
 
     return;
 }

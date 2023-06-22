@@ -5,8 +5,6 @@
 
 #include <stdint.h>
 
-#include "color.h"
-
 typedef struct ascii_t {
     int scale_width;
     int scale_height;

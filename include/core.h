@@ -39,4 +39,13 @@
 #define gpu_check_error(code) { gpu_assert((code), __FILE__, __LINE__); }
 inline void gpu_assert(cudaError_t code, const char *file, int line);
 
+// Taken from https://stackoverflow.com/questions/1737726/how-to-perform-rgb-yuv-conversion-in-c-c
+
+#define CLAMP(X, MIN, MAX) ( (X) > MAX ? MAX : (X) < MIN ? MIN : X)
+
+// RGB -> YUV
+#define RGB_TO_Y(R, G, B) CLAMP(( (  66 * (R) + 129 * (G) +  25 * (B) + 128) >> 8) +  16, 0, 255)
+#define RGB_TO_U(R, G, B) CLAMP(( ( -38 * (R) -  74 * (G) + 112 * (B) + 128) >> 8) + 128, 0, 255)
+#define RGB_TO_V(R, G, B) CLAMP(( ( 112 * (R) -  94 * (G) -  18 * (B) + 128) >> 8) + 128, 0, 255)
+
 #endif
