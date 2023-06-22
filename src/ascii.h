@@ -15,8 +15,8 @@ typedef struct ascii_t {
     int dark_mode;
     int color_enabled;
 
-    const char *char_set;
-    size_t      char_set_size;
+    char  *char_set;
+    size_t char_set_size;
 
     char  *y_data; // Luminance
     char  *u_data; // Blue projection

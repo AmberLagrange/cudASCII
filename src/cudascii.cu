@@ -164,7 +164,7 @@ __host__ int image_to_ascii(ascii_t *h_ascii, const char *filepath) {
 
     // Create and copy ascii char set data
     gpu_check_error(cudaMallocHost(&(d_ascii->char_set), d_ascii->char_set_size));
-    gpu_check_error(cudaMemcpy((char*)d_ascii->char_set, h_ascii->char_set, d_ascii->char_set_size, cudaMemcpyHostToDevice));
+    gpu_check_error(cudaMemcpy(d_ascii->char_set, h_ascii->char_set, d_ascii->char_set_size, cudaMemcpyHostToDevice));
 
     // Create ascii data
     gpu_check_error(cudaMallocHost(&(d_ascii->y_data), d_ascii->data_size));
@@ -190,7 +190,7 @@ __host__ int image_to_ascii(ascii_t *h_ascii, const char *filepath) {
     gpu_check_error(cudaFreeHost(d_ascii->v_data));
     gpu_check_error(cudaFreeHost(d_ascii->u_data));
     gpu_check_error(cudaFreeHost(d_ascii->y_data));
-    gpu_check_error(cudaFreeHost((char*)d_ascii->char_set));
+    gpu_check_error(cudaFreeHost(d_ascii->char_set));
     gpu_check_error(cudaFreeHost(d_ascii));
     gpu_check_error(cudaFreeHost(d_image->data));
     gpu_check_error(cudaFreeHost(d_image));

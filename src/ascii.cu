@@ -16,13 +16,16 @@ __host__ int init_ascii(ascii_t *ascii, int src_width, int scale_width, int src_
     ascii->u_data = NULL;
     ascii->v_data = NULL;
 
-    ascii->char_set = DEFAULT_CHAR_SET;
     ascii->char_set_size = DEFAULT_CHAR_SET_SIZE;
+    ascii->char_set = (char*)malloc(ascii->char_set_size);
+    memcpy(ascii->char_set, DEFAULT_CHAR_SET, ascii->char_set_size);
 
     return E_OK;
 }
 
 __host__ int cleanup_ascii(ascii_t *ascii) {
+
+    free(ascii->char_set);
 
     free(ascii->y_data);
     free(ascii->u_data);
@@ -31,10 +34,12 @@ __host__ int cleanup_ascii(ascii_t *ascii) {
     return E_OK;
 }
 
-int set_char_set(ascii_t *ascii, const char* char_set, size_t char_set_size) {
+int set_char_set(ascii_t *ascii, const char *char_set, size_t char_set_size) {
     
-    ascii->char_set      = char_set;
+    free(ascii->char_set);
     ascii->char_set_size = char_set_size;
+    ascii->char_set = (char*)malloc(ascii->char_set_size);
+    memcpy(ascii->char_set, char_set, ascii->char_set_size);
 
     return E_OK;
 }
