@@ -3,7 +3,7 @@
 
 #include "core.h"
 
-#include <stdint.h>
+#include "color_format.h"
 
 typedef struct ascii_t {
     int scale_width;

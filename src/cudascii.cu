@@ -12,26 +12,69 @@ inline void gpu_assert(cudaError_t code, const char *file, int line) {
    }
 }
 
-__global__ void convert_to_ascii(ascii_t *ascii, image_t *image) {
+inline __attribute__((always_inline)) __device__ void rgb_to_yuv(u8 r, u8 g, u8 b, u8 *y, u8 *u, u8 *v) {
+    *y = RGB_TO_Y(r, g, b);
+    *u = RGB_TO_U(r, g, b);
+    *v = RGB_TO_V(r, g, b);
+}
+
+inline __attribute__((always_inline)) __device__ void yuv_to_rgb(u8 y, u8 u, u8 v, u8 *r, u8 *g, u8 *b) {
+    *r = YUV_TO_R(y, u, v);
+    *g = YUV_TO_G(y, u, v);
+    *b = YUV_TO_B(y, u, v);
+}
+
+inline __attribute__((always_inline)) __device__ void rgb_to_rgb(u8 r_in, u8 g_in, u8 b_in, u8 *r_out, u8 *g_out, u8 *b_out) {
+    *r_out = r_in;
+    *g_out = g_in;
+    *b_out = b_in;
+}
+
+inline __attribute__((always_inline)) __device__ void yuv_to_yuv(u8 y_in, u8 u_in, u8 v_in, u8 *y_out, u8 *u_out, u8 *v_out) {
+    *y_out = y_in;
+    *u_out = u_in;
+    *v_out = v_in;
+}
+
+__global__ void convert_to_ascii(ascii_t *ascii, image_t *image, volatile int *error) {
 
     int y_average = 0;
     int u_average = 0;
     int v_average = 0;
 
-    int row = threadIdx.x;
-    int col = blockIdx.x;
+    int thread_row = threadIdx.x;
+    int thread_col = blockIdx.x;
 
-    int red, green, blue;
+    u8 byte_1, byte_2, byte_3;
+    u8 y, u, v;
 
-    for (int r = row * ascii->scale_height; r < (row + 1) * ascii->scale_height; ++r) {
-        for (int c = col * ascii->scale_width; c < (col + 1) * ascii->scale_width; ++c) {
-            red   = image->data[(r * image->width + c) * image->bytes_per_pixel + 0];
-            green = image->data[(r * image->width + c) * image->bytes_per_pixel + 1];
-            blue  = image->data[(r * image->width + c) * image->bytes_per_pixel + 2];
+    void (*conversion_fn)(u8, u8, u8, u8*, u8*, u8*);
 
-            y_average += RGB_TO_Y(red, green, blue);
-            u_average += RGB_TO_U(red, green, blue);
-            v_average += RGB_TO_V(red, green, blue);
+    switch (image->color_format) {
+        case COLOR_RGB:
+            conversion_fn = &rgb_to_yuv;
+            break;
+        case COLOR_YUV:
+            conversion_fn = &yuv_to_yuv;
+            break;
+        default:
+            if (error) {
+                *error = E_INVALID_COLOR_FORMAT;
+            }
+            return;
+    }
+
+    for (int row = thread_row * ascii->scale_height; row < (thread_row + 1) * ascii->scale_height; ++row) {
+        for (int col = thread_col * ascii->scale_width; col < (thread_col + 1) * ascii->scale_width; ++col) {
+            byte_1 = image->data[(row * image->width + col) * image->bytes_per_pixel + 0];
+            byte_2 = image->data[(row * image->width + col) * image->bytes_per_pixel + 1];
+            byte_3 = image->data[(row * image->width + col) * image->bytes_per_pixel + 2];
+
+            conversion_fn(byte_1, byte_2, byte_3, &y, &u, &v);
+
+            y_average += y;
+            u_average += u;
+            v_average += v;
         }
     }
 
@@ -41,11 +84,11 @@ __global__ void convert_to_ascii(ascii_t *ascii, image_t *image) {
 
     y_average = (ascii->dark_mode) ? (255 - y_average) : y_average;
 
-    ascii->y_data[row * ascii->width + col] = ascii->char_set[(y_average * (ascii->char_set_size - 1)) / 255];
+    ascii->y_data[thread_row * ascii->width + thread_col] = ascii->char_set[(y_average * (ascii->char_set_size - 1)) / 255];
 
     if (ascii->color_enabled) {
-        ascii->u_data[row * ascii->width + col] = u_average;
-        ascii->v_data[row * ascii->width + col] = v_average;
+        ascii->u_data[thread_row * ascii->width + thread_col] = u_average;
+        ascii->v_data[thread_row * ascii->width + thread_col] = v_average;
     }
 
     return;
@@ -58,7 +101,7 @@ __host__ int test_blank(ascii_t *ascii, const char *greyscale) {
     for (int i = 0; i < ascii->data_size; ++i) {
         if (ascii->y_data[i] != greyscale[0]) {
             printf("Error! Did not copy over properly!\nIndex %d has value %d\n", i, ascii->y_data[i]);
-            return E_TEST;
+            return E_TEST_FAILED;
         }
     }
 
@@ -127,7 +170,7 @@ __host__ int image_to_ascii(ascii_t *h_ascii, const char *filepath) {
     }
 
     // Run the kernel
-    convert_to_ascii<<<d_ascii->width, d_ascii->height>>>(d_ascii, d_image);
+    convert_to_ascii<<<d_ascii->width, d_ascii->height>>>(d_ascii, d_image, NULL);
     gpu_check_error(cudaPeekAtLastError());
 
     // Copy ascii data from device to host

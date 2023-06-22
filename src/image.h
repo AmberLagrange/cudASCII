@@ -3,9 +3,8 @@
 
 #include "core.h"
 
-#include <stdint.h>
-
 #include "image_types/bmp.h"
+#include "color_format.h"
 
 typedef struct image_t {
     const char *filepath;
@@ -14,9 +13,10 @@ typedef struct image_t {
     int height;
     
     int bytes_per_pixel;
+    color_format_t color_format;
 
-    uint8_t *data;
-    size_t   data_size;
+    u8    *data;
+    size_t data_size;
 } image_t;
 
 int __host__ read_image(image_t *image, const char *filepath);

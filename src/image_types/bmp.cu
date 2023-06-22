@@ -12,7 +12,7 @@ __host__ int load_bmp(bmp_t *bmp, const char *filepath) {
     fread(&(bmp->header), sizeof(bmp_header_t), 1, file);
 
     size_t data_size = bmp->header.file_size - sizeof(bmp_header_t);
-    bmp->pixels = (uint8_t*)malloc(data_size);
+    bmp->pixels = (u8*)malloc(data_size);
 
     fread(bmp->pixels, data_size, 1, file);
     fclose(file);
@@ -64,5 +64,4 @@ __host__ void print_bmp_header(bmp_header_t *header) {
             header->colors_used,
             header->important_colors
             );
-
 }

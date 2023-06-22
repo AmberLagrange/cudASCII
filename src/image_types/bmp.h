@@ -3,33 +3,32 @@
 
 #include "core.h"
 
-#include <stdint.h>
 #include <stdio.h>
 
 typedef struct bmp_header_t {
     // Header
-    uint16_t signature;
-    uint32_t file_size;
-    uint32_t reserved;
-    uint32_t data_offset;
+    u16 signature;
+    u32 file_size;
+    u32 reserved;
+    u32 data_offset;
 
     // Info Header
-    uint32_t info_header_size;
-    uint32_t width;
-    uint32_t height;
-    uint16_t planes;
-    uint16_t bpp;
-    uint32_t compression;
-    uint32_t image_size;
-    uint32_t x_ppm;
-    uint32_t y_ppm;
-    uint32_t colors_used;
-    uint32_t important_colors;
+    u32 info_header_size;
+    u32 width;
+    u32 height;
+    u16 planes;
+    u16 bpp;
+    u32 compression;
+    u32 image_size;
+    u32 x_ppm;
+    u32 y_ppm;
+    u32 colors_used;
+    u32 important_colors;
 } __attribute__((packed)) bmp_header_t;
 
 typedef struct bmp_t {
     bmp_header_t header;
-    uint8_t *pixels;
+    u8 *pixels;
 } bmp_t;
 
 __host__ int load_bmp(bmp_t *bmp, const char *filepath);

@@ -41,6 +41,10 @@ int set_char_set(ascii_t *ascii, const char* char_set, size_t char_set_size) {
 
 int enable_color(ascii_t *ascii) {
 
+    if (ascii->color_enabled) {
+        return E_COLOR_ENABLED;
+    }
+
     ascii->color_enabled = 1;
 
     ascii->u_data = (char*)malloc(ascii->data_size);

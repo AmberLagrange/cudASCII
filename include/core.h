@@ -5,6 +5,14 @@
 #include "device_launch_parameters.h"
 
 #include <errno.h>
+#include <stdint.h>
+
+typedef uint8_t   u8;
+typedef int8_t    i8;
+typedef uint16_t u16;
+typedef int16_t  i16;
+typedef uint32_t u32;
+typedef int32_t  i32;
 
 #define BLACK       "\e[0;30m"
 #define RED         "\e[0;31m"
@@ -28,12 +36,20 @@
 #define E_OK 0
 #endif
 
+#ifndef E_COLOR_ENABLED
+#define E_COLOR_ENABLED -1
+#endif
+
 #ifndef E_FILE
 #define E_FILE -1
 #endif
 
-#ifndef E_TEST
-#define E_TEST -1
+#ifndef E_TEST_FAILED
+#define E_TEST_FAILED -1
+#endif
+
+#ifndef E_INVALID_COLOR_FORMAT
+#define E_INVALID_COLOR_FORMAT -1
 #endif
 
 #define gpu_check_error(code) { gpu_assert((code), __FILE__, __LINE__); }
@@ -44,8 +60,17 @@ inline void gpu_assert(cudaError_t code, const char *file, int line);
 #define CLAMP(X, MIN, MAX) ( (X) > MAX ? MAX : (X) < MIN ? MIN : X)
 
 // RGB -> YUV
-#define RGB_TO_Y(R, G, B) CLAMP(( (  66 * (R) + 129 * (G) +  25 * (B) + 128) >> 8) +  16, 0, 255)
-#define RGB_TO_U(R, G, B) CLAMP(( ( -38 * (R) -  74 * (G) + 112 * (B) + 128) >> 8) + 128, 0, 255)
-#define RGB_TO_V(R, G, B) CLAMP(( ( 112 * (R) -  94 * (G) -  18 * (B) + 128) >> 8) + 128, 0, 255)
+#define RGB_TO_Y(R, G, B) CLAMP((( 66 * (R) + 129 * (G) +  25 * (B) + 128) >> 8) +  16, 0, 255)
+#define RGB_TO_U(R, G, B) CLAMP(((-38 * (R) -  74 * (G) + 112 * (B) + 128) >> 8) + 128, 0, 255)
+#define RGB_TO_V(R, G, B) CLAMP(((112 * (R) -  94 * (G) -  18 * (B) + 128) >> 8) + 128, 0, 255)
+
+// YUV -> RGB
+#define C(Y) ((Y) - 16 )
+#define D(U) ((U) - 128)
+#define E(V) ((V) - 128)
+
+#define YUV_TO_R(Y, U, V) CLAMP((298 * C(Y)              + 409 * E(V) + 128) >> 8, 0, 255)
+#define YUV_TO_G(Y, U, V) CLAMP((298 * C(Y) - 100 * D(U) - 208 * E(V) + 128) >> 8, 0, 255)
+#define YUV_TO_B(Y, U, V) CLAMP((298 * C(Y) + 516 * D(U)              + 128) >> 8, 0, 255)
 
 #endif

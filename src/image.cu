@@ -8,18 +8,21 @@ int __host__ read_image(image_t *image, const char *filepath) {
 
     bmp_t bmp;
     
-    int ret = load_bmp(&bmp, filepath);
+    int data_size = load_bmp(&bmp, filepath);
 
-    if (ret <= 0) {
-        return ret;
+    if (data_size <= 0) {
+        return data_size;
     }
     
     //print_bmp_header(&(bmp.header));
 
     image->width = bmp.header.width;
     image->height = bmp.header.height;
+
     image->bytes_per_pixel = bmp.header.bpp / (CHAR_BIT);
-    image->data_size = ret;
+    image->color_format = COLOR_RGB;
+
+    image->data_size = data_size;
 
     image->data = bmp.pixels;
 
