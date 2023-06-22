@@ -12,28 +12,34 @@ inline void gpu_assert(cudaError_t code, const char *file, int line) {
    }
 }
 
-inline __attribute__((always_inline)) __device__ void rgb_to_yuv(u8 r, u8 g, u8 b, u8 *y, u8 *u, u8 *v) {
-    *y = RGB_TO_Y(r, g, b);
-    *u = RGB_TO_U(r, g, b);
-    *v = RGB_TO_V(r, g, b);
+inline __attribute__((always_inline)) __device__ void rgb_to_yuv(u8 *byte_1, u8 *byte_2, u8 *byte_3) {
+
+    u8 r = *byte_1;
+    u8 g = *byte_2;
+    u8 b = *byte_3;
+
+    *byte_1 = RGB_TO_Y(r, g, b);
+    *byte_2 = RGB_TO_U(r, g, b);
+    *byte_3 = RGB_TO_V(r, g, b);
 }
 
-inline __attribute__((always_inline)) __device__ void yuv_to_rgb(u8 y, u8 u, u8 v, u8 *r, u8 *g, u8 *b) {
-    *r = YUV_TO_R(y, u, v);
-    *g = YUV_TO_G(y, u, v);
-    *b = YUV_TO_B(y, u, v);
+inline __attribute__((always_inline)) __device__ void yuv_to_rgb(u8 *byte_1, u8 *byte_2, u8 *byte_3) {
+
+    u8 y = *byte_1;
+    u8 u = *byte_2;
+    u8 v = *byte_3;
+
+    *byte_1 = YUV_TO_R(y, u, v);
+    *byte_2 = YUV_TO_G(y, u, v);
+    *byte_3 = YUV_TO_B(y, u, v);
 }
 
-inline __attribute__((always_inline)) __device__ void rgb_to_rgb(u8 r_in, u8 g_in, u8 b_in, u8 *r_out, u8 *g_out, u8 *b_out) {
-    *r_out = r_in;
-    *g_out = g_in;
-    *b_out = b_in;
+inline __attribute__((always_inline)) __device__ void rgb_to_rgb(u8 *byte_1, u8 *byte_2, u8 *byte_3) {
+    // NOP
 }
 
-inline __attribute__((always_inline)) __device__ void yuv_to_yuv(u8 y_in, u8 u_in, u8 v_in, u8 *y_out, u8 *u_out, u8 *v_out) {
-    *y_out = y_in;
-    *u_out = u_in;
-    *v_out = v_in;
+inline __attribute__((always_inline)) __device__ void yuv_to_yuv(u8 *byte_1, u8 *byte_2, u8 *byte_3) {
+    // NOP
 }
 
 __global__ void convert_to_ascii(ascii_t *ascii, image_t *image, volatile int *error) {
@@ -46,9 +52,8 @@ __global__ void convert_to_ascii(ascii_t *ascii, image_t *image, volatile int *e
     int thread_col = blockIdx.x;
 
     u8 byte_1, byte_2, byte_3;
-    u8 y, u, v;
 
-    void (*conversion_fn)(u8, u8, u8, u8*, u8*, u8*);
+    void (*conversion_fn)(u8*, u8*, u8*);
 
     switch (image->color_format) {
         case COLOR_RGB:
@@ -70,11 +75,11 @@ __global__ void convert_to_ascii(ascii_t *ascii, image_t *image, volatile int *e
             byte_2 = image->data[(row * image->width + col) * image->bytes_per_pixel + 1];
             byte_3 = image->data[(row * image->width + col) * image->bytes_per_pixel + 2];
 
-            conversion_fn(byte_1, byte_2, byte_3, &y, &u, &v);
+            conversion_fn(&byte_1, &byte_2, &byte_3);
 
-            y_average += y;
-            u_average += u;
-            v_average += v;
+            y_average += byte_1;
+            u_average += byte_2;
+            v_average += byte_3;
         }
     }
 
