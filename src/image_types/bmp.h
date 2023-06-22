@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-struct bmp_header_t {
+typedef struct bmp_header_t {
     // Header
     uint16_t signature;
     uint32_t file_size;
@@ -25,16 +25,16 @@ struct bmp_header_t {
     uint32_t y_ppm;
     uint32_t colors_used;
     uint32_t important_colors;
-} __attribute__((packed));
+} __attribute__((packed)) bmp_header_t;
 
-struct bmp_t {
-    struct bmp_header_t header;
+typedef struct bmp_t {
+    bmp_header_t header;
     uint8_t *pixels;
-};
+} bmp_t;
 
-__host__ int load_bmp(struct bmp_t *bmp, const char *filepath);
-__host__ int cleanup_bmp(struct bmp_t *bmp);
+__host__ int load_bmp(bmp_t *bmp, const char *filepath);
+__host__ int cleanup_bmp(bmp_t *bmp);
 
-void __host__ print_bmp_header(struct bmp_header_t *bmp);
+void __host__ print_bmp_header(bmp_header_t *bmp);
 
 #endif

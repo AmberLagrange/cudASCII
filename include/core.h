@@ -6,6 +6,16 @@
 
 #include <errno.h>
 
+#define BLACK       "\e[0;30m"
+#define RED         "\e[0;31m"
+#define GREEN       "\e[0;32m"
+#define YELLOW      "\e[0;33m"
+#define BLUE        "\e[0;34m"
+#define MAGENTA     "\e[0;35m"
+#define CYAN        "\e[0;36m"
+#define WHITE       "\e[0;37m"
+#define COLOR_RESET "\e[0m"
+
 #define DEFAULT_CHAR_SET      "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`\'. "
 #define DEFAULT_CHAR_SET_SIZE sizeof(DEFAULT_CHAR_SET) - 1  // Won't move over the null terminator. This is fine as the
                                                             // DEFAULT_CHAR_SET is an array of characters and shouldn't

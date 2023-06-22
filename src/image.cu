@@ -2,7 +2,7 @@
 
 // TODO: Abstract away from bmp only
 
-int __host__ read_image(struct image_t *image, const char *filepath) {
+int __host__ read_image(image_t *image, const char *filepath) {
 
     image->filepath = filepath;
 
@@ -26,7 +26,7 @@ int __host__ read_image(struct image_t *image, const char *filepath) {
     return E_OK;
 }
 
-int __host__ cleanup_image(struct image_t *image) {
+int __host__ cleanup_image(image_t *image) {
 
     free(image->data);
 

@@ -12,7 +12,7 @@ inline void gpu_assert(cudaError_t code, const char *file, int line) {
    }
 }
 
-__global__ void convert_to_ascii(struct ascii_t *ascii, struct image_t *image) {
+__global__ void convert_to_ascii(ascii_t *ascii, image_t *image) {
 
     int average = 0;
 
@@ -30,18 +30,18 @@ __global__ void convert_to_ascii(struct ascii_t *ascii, struct image_t *image) {
     average /= (image->bytes_per_pixel * ascii->scale_width * ascii->scale_height);
     average = (ascii->dark_mode) ? (255 - average) : average;
 
-    ascii->data[row * ascii->width + col] = ascii->char_set[(average * (ascii->char_set_size - 1)) / 255];
+    ascii->y_data[row * ascii->width + col] = ascii->char_set[(average * (ascii->char_set_size - 1)) / 255];
 
     return;
 }
 
-__host__ int test_blank(struct ascii_t *ascii, const char *greyscale) {
+__host__ int test_blank(ascii_t *ascii, const char *greyscale) {
 
     char blank_character = ascii->dark_mode ? greyscale[0] : greyscale[strlen(greyscale) - 1];
 
     for (int i = 0; i < ascii->data_size; ++i) {
-        if (ascii->data[i] != greyscale[0]) {
-            printf("Error! Did not copy over properly!\nIndex %d has value %d\n", i, ascii->data[i]);
+        if (ascii->y_data[i] != greyscale[0]) {
+            printf("Error! Did not copy over properly!\nIndex %d has value %d\n", i, ascii->y_data[i]);
             return E_TEST;
         }
     }
@@ -51,7 +51,7 @@ __host__ int test_blank(struct ascii_t *ascii, const char *greyscale) {
     return E_OK;
 }
 
-__host__ int write_image(struct ascii_t *ascii, const char *filepath) {
+__host__ int write_image(ascii_t *ascii, const char *filepath) {
 
     FILE *file = fopen(filepath, "w+");
 
@@ -62,7 +62,7 @@ __host__ int write_image(struct ascii_t *ascii, const char *filepath) {
 
     for (int row = ascii->height - 1; row >= 0 ; --row) {
         for (int col = 0; col < ascii->width; ++col) {
-            fprintf(file, "%c", ascii->data[row * ascii->width + col]);
+            fprintf(file, "%c", ascii->y_data[row * ascii->width + col]);
         }
         fprintf(file, "\n");
     }
@@ -75,18 +75,18 @@ __host__ int write_image(struct ascii_t *ascii, const char *filepath) {
 __host__ int image_to_ascii(ascii_t *h_ascii, const char *filepath) {
 
     // Host image data
-    struct image_t h_image;
+    image_t h_image;
     read_image(&h_image, filepath);
 
     // Host ascii data
     init_ascii(h_ascii, h_image.width, SCALE_WIDTH, h_image.height, SCALE_HEIGHT, 1);
 
     // Pointers to data on device
-    struct image_t *d_image;
-    struct ascii_t *d_ascii;
+    image_t *d_image;
+    ascii_t *d_ascii;
 
     // Create and copy image struct over
-    gpu_check_error(cudaMallocHost(&d_image, sizeof(struct image_t)));
+    gpu_check_error(cudaMallocHost(&d_image, sizeof(image_t)));
     gpu_check_error(cudaMemcpy(d_image, &h_image, sizeof(h_image), cudaMemcpyHostToDevice));
 
     // Create and copy image data over
@@ -94,25 +94,37 @@ __host__ int image_to_ascii(ascii_t *h_ascii, const char *filepath) {
     gpu_check_error(cudaMemcpy(d_image->data, h_image.data, d_image->data_size, cudaMemcpyHostToDevice));
 
     // Create and copy ascii struct data
-    gpu_check_error(cudaMallocHost(&d_ascii, sizeof(struct ascii_t)));
-    gpu_check_error(cudaMemcpy(d_ascii, h_ascii, sizeof(struct ascii_t), cudaMemcpyHostToDevice));
+    gpu_check_error(cudaMallocHost(&d_ascii, sizeof(ascii_t)));
+    gpu_check_error(cudaMemcpy(d_ascii, h_ascii, sizeof(ascii_t), cudaMemcpyHostToDevice));
 
     // Create and copy ascii char set data
     gpu_check_error(cudaMallocHost(&(d_ascii->char_set), d_ascii->char_set_size));
     gpu_check_error(cudaMemcpy((char*)d_ascii->char_set, h_ascii->char_set, d_ascii->char_set_size, cudaMemcpyHostToDevice));
 
     // Create ascii data
-    gpu_check_error(cudaMallocHost(&(d_ascii->data), d_ascii->data_size));
+    gpu_check_error(cudaMallocHost(&(d_ascii->y_data), d_ascii->data_size));
+
+    if (d_ascii->color_enabled) {
+        gpu_check_error(cudaMallocHost(&(d_ascii->u_data), d_ascii->data_size));
+        gpu_check_error(cudaMallocHost(&(d_ascii->v_data), d_ascii->data_size));
+    }
 
     // Run the kernel
     convert_to_ascii<<<d_ascii->width, d_ascii->height>>>(d_ascii, d_image);
     gpu_check_error(cudaPeekAtLastError());
 
     // Copy ascii data from device to host
-    gpu_check_error(cudaMemcpy(h_ascii->data, d_ascii->data, h_ascii->data_size, cudaMemcpyDeviceToHost));
+    gpu_check_error(cudaMemcpy(h_ascii->y_data, d_ascii->y_data, h_ascii->data_size, cudaMemcpyDeviceToHost));
+
+        if (d_ascii->color_enabled) {
+            gpu_check_error(cudaMemcpy(h_ascii->u_data, d_ascii->u_data, h_ascii->data_size, cudaMemcpyDeviceToHost));
+            gpu_check_error(cudaMemcpy(h_ascii->v_data, d_ascii->v_data, h_ascii->data_size, cudaMemcpyDeviceToHost));
+    }
     
     // Clean up cuda memory
-    gpu_check_error(cudaFreeHost(d_ascii->data));
+    gpu_check_error(cudaFreeHost(d_ascii->v_data));
+    gpu_check_error(cudaFreeHost(d_ascii->u_data));
+    gpu_check_error(cudaFreeHost(d_ascii->y_data));
     gpu_check_error(cudaFreeHost((char*)d_ascii->char_set));
     gpu_check_error(cudaFreeHost(d_ascii));
     gpu_check_error(cudaFreeHost(d_image->data));
@@ -138,7 +150,7 @@ int main(int argc, char **argv) {
         return E_FILE;
     }
 
-    struct ascii_t ascii;
+    ascii_t ascii;
 
     image_to_ascii(&ascii, argv[1]);
 

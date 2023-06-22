@@ -1,6 +1,6 @@
 #include "bmp.h"
 
-__host__ int load_bmp(struct bmp_t *bmp, const char *filepath) {
+__host__ int load_bmp(bmp_t *bmp, const char *filepath) {
 
     FILE *file = fopen(filepath, "rb");
 
@@ -20,7 +20,7 @@ __host__ int load_bmp(struct bmp_t *bmp, const char *filepath) {
     return data_size;
 }
 
-__host__ void print_bmp_header(struct bmp_header_t *header) {
+__host__ void print_bmp_header(bmp_header_t *header) {
 
     printf(
             "Signature:   %c%c\n"
