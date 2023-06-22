@@ -44,8 +44,8 @@ __global__ void convert_to_ascii(ascii_t *ascii, image_t *image) {
     ascii->y_data[row * ascii->width + col] = ascii->char_set[(y_average * (ascii->char_set_size - 1)) / 255];
 
     if (ascii->color_enabled) {
-        ascii->y_data[row * ascii->width + col] = u_average;
-        ascii->y_data[row * ascii->width + col] = v_average;
+        ascii->u_data[row * ascii->width + col] = u_average;
+        ascii->v_data[row * ascii->width + col] = v_average;
     }
 
     return;
@@ -96,6 +96,7 @@ __host__ int image_to_ascii(ascii_t *h_ascii, const char *filepath) {
 
     // Host ascii data
     init_ascii(h_ascii, h_image.width, SCALE_WIDTH, h_image.height, SCALE_HEIGHT, 1);
+    enable_color(h_ascii);
 
     // Pointers to data on device
     image_t *d_image;
@@ -132,9 +133,9 @@ __host__ int image_to_ascii(ascii_t *h_ascii, const char *filepath) {
     // Copy ascii data from device to host
     gpu_check_error(cudaMemcpy(h_ascii->y_data, d_ascii->y_data, h_ascii->data_size, cudaMemcpyDeviceToHost));
 
-        if (d_ascii->color_enabled) {
-            gpu_check_error(cudaMemcpy(h_ascii->u_data, d_ascii->u_data, h_ascii->data_size, cudaMemcpyDeviceToHost));
-            gpu_check_error(cudaMemcpy(h_ascii->v_data, d_ascii->v_data, h_ascii->data_size, cudaMemcpyDeviceToHost));
+    if (d_ascii->color_enabled) {
+        gpu_check_error(cudaMemcpy(h_ascii->u_data, d_ascii->u_data, h_ascii->data_size, cudaMemcpyDeviceToHost));
+        gpu_check_error(cudaMemcpy(h_ascii->v_data, d_ascii->v_data, h_ascii->data_size, cudaMemcpyDeviceToHost));
     }
     
     // Clean up cuda memory
