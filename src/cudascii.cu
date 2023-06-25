@@ -12,7 +12,7 @@ inline void gpu_assert(cudaError_t code, const char *file, int line) {
    }
 }
 
-inline __attribute__((always_inline)) __device__ void rgb_to_yuv(u8 *byte_1, u8 *byte_2, u8 *byte_3) {
+inline __attribute__((always_inline)) __host__ __device__ void rgb_to_yuv(u8 *byte_1, u8 *byte_2, u8 *byte_3) {
 
     u8 r = *byte_1;
     u8 g = *byte_2;
@@ -23,7 +23,7 @@ inline __attribute__((always_inline)) __device__ void rgb_to_yuv(u8 *byte_1, u8 
     *byte_3 = RGB_TO_V(r, g, b);
 }
 
-inline __attribute__((always_inline)) __device__ void yuv_to_rgb(u8 *byte_1, u8 *byte_2, u8 *byte_3) {
+inline __attribute__((always_inline)) __host__ __device__ void yuv_to_rgb(u8 *byte_1, u8 *byte_2, u8 *byte_3) {
 
     u8 y = *byte_1;
     u8 u = *byte_2;
@@ -34,11 +34,11 @@ inline __attribute__((always_inline)) __device__ void yuv_to_rgb(u8 *byte_1, u8 
     *byte_3 = YUV_TO_B(y, u, v);
 }
 
-inline __attribute__((always_inline)) __device__ void rgb_to_rgb(u8 *byte_1, u8 *byte_2, u8 *byte_3) {
+inline __attribute__((always_inline)) __host__ __device__ void rgb_to_rgb(u8 *byte_1, u8 *byte_2, u8 *byte_3) {
     // NOP
 }
 
-inline __attribute__((always_inline)) __device__ void yuv_to_yuv(u8 *byte_1, u8 *byte_2, u8 *byte_3) {
+inline __attribute__((always_inline)) __host__ __device__ void yuv_to_yuv(u8 *byte_1, u8 *byte_2, u8 *byte_3) {
     // NOP
 }
 

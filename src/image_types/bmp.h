@@ -34,6 +34,8 @@ typedef struct bmp_t {
 __host__ int load_bmp(bmp_t *bmp, const char *filepath);
 __host__ int cleanup_bmp(bmp_t *bmp);
 
-void __host__ print_bmp_header(bmp_header_t *bmp);
+__host__ int decompress_bmp(bmp_t *bmp);
+
+__host__ void print_bmp_header(bmp_header_t *bmp);
 
 #endif

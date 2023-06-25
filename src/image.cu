@@ -6,6 +6,18 @@ int __host__ read_image(image_t *image, const char *filepath) {
 
     image->filepath = filepath;
 
+    return read_bmp_image(image, filepath);
+}
+
+int __host__ cleanup_image(image_t *image) {
+
+    free(image->data);
+
+    return E_OK;
+}
+
+int __host__ read_bmp_image(image_t *image, const char *filepath) {
+
     bmp_t bmp;
     
     int data_size = load_bmp(&bmp, filepath);
@@ -29,9 +41,8 @@ int __host__ read_image(image_t *image, const char *filepath) {
     return E_OK;
 }
 
-int __host__ cleanup_image(image_t *image) {
+int __host__ read_png_image(image_t *image, const char *filepath) {
 
-    free(image->data);
-
-    return E_OK;
+    fprintf(stderr, "Png image not supported\n");
+    return E_FILE_READ;
 }

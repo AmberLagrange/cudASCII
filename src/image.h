@@ -22,4 +22,7 @@ typedef struct image_t {
 int __host__ read_image(image_t *image, const char *filepath);
 int __host__ cleanup_image(image_t *image);
 
+int __host__ read_bmp_image(image_t *image, const char *filepath);
+int __host__ read_png_image(image_t *image, const char *filepath);
+
 #endif

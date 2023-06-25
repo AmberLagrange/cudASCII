@@ -29,6 +29,9 @@ typedef int32_t  i32;
                                                             // DEFAULT_CHAR_SET is an array of characters and shouldn't
                                                             // be used as a string
 
+#define BMP_SIGNATURE "\x42\x4D"
+#define PNG_SIGNATURE "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A"
+
 #define SCALE_WIDTH  4
 #define SCALE_HEIGHT 4
 
