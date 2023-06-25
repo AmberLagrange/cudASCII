@@ -6,17 +6,27 @@ __host__ int load_bmp(bmp_t *bmp, const char *filepath) {
 
     if (!file) {
         fprintf(stderr, "Could not read from file %s: %s\n", filepath, strerror(errno));
-        return E_FILE;
+        return E_FILE_READ;
     }
 
-    fread(&(bmp->header), sizeof(bmp_header_t), 1, file);
+    size_t data_read = fread(&(bmp->header), 1, sizeof(bmp_header_t), file);
+    if (data_read != sizeof(bmp_header_t)) {
+        fprintf(stderr,
+                "Did not read header from %s properly\n"
+                "Expected %lu bytes. Read %lu bytes\n",
+                filepath, sizeof(bmp_header_t), data_read);
+        return E_FILE_READ;
+    }
 
     size_t data_size = bmp->header.file_size - sizeof(bmp_header_t);
     bmp->pixels = (u8*)malloc(data_size);
+    data_read = fread(bmp->pixels, 1, data_size, file);
+    if (data_read != data_size) {
+        fprintf(stderr, "Did not read all data from %s\n", filepath);
+        return E_FILE_READ;
+    }
 
-    fread(bmp->pixels, data_size, 1, file);
     fclose(file);
-
     return data_size;
 }
 

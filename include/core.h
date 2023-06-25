@@ -40,16 +40,24 @@ typedef int32_t  i32;
 #define E_COLOR_ENABLED -1
 #endif
 
-#ifndef E_FILE
-#define E_FILE -1
+#ifndef E_INVALID_PARAMS
+#define E_INVALID_PARAMS -2
+#endif
+
+#ifndef E_FILE_READ
+#define E_FILE_READ -3
+#endif
+
+#ifndef E_FILE_WRITE
+#define E_FILE_WRITE -4
 #endif
 
 #ifndef E_TEST_FAILED
-#define E_TEST_FAILED -1
+#define E_TEST_FAILED -5
 #endif
 
 #ifndef E_INVALID_COLOR_FORMAT
-#define E_INVALID_COLOR_FORMAT -1
+#define E_INVALID_COLOR_FORMAT -6
 #endif
 
 #define gpu_check_error(code) { gpu_assert((code), __FILE__, __LINE__); }

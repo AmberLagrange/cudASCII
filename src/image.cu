@@ -14,7 +14,7 @@ int __host__ read_image(image_t *image, const char *filepath) {
         return data_size;
     }
     
-    //print_bmp_header(&(bmp.header));
+    print_bmp_header(&(bmp.header));
 
     image->width = bmp.header.width;
     image->height = bmp.header.height;

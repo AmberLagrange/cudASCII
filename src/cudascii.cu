@@ -117,11 +117,17 @@ __host__ int test_blank(ascii_t *ascii, const char *greyscale) {
 
 __host__ int write_image(ascii_t *ascii, const char *filepath) {
 
-    FILE *file = fopen(filepath, "w+");
+    FILE *file;
 
-    if (!file) {
-        fprintf(stderr, "Could not write image to file %s: %s\n", filepath, strerror(errno));
-        return E_FILE;
+    if (!filepath) {
+        file = stdout;
+    } else {
+        file = fopen(filepath, "w+");
+
+        if (!file) {
+            fprintf(stderr, "Could not write image to file %s: %s\n", filepath, strerror(errno));
+            return E_FILE_WRITE;
+        }
     }
 
     for (int row = ascii->height - 1; row >= 0 ; --row) {
@@ -140,7 +146,9 @@ __host__ int image_to_ascii(ascii_t *h_ascii, const char *filepath) {
 
     // Host image data
     image_t h_image;
-    read_image(&h_image, filepath);
+    if (int ret = read_image(&h_image, filepath)) {
+        return ret;
+    }
 
     // Host ascii data
     init_ascii(h_ascii, h_image.width, SCALE_WIDTH, h_image.height, SCALE_HEIGHT, 1);
@@ -207,19 +215,26 @@ int main(int argc, char **argv) {
 
     if (argc < 2) {
         fprintf(stderr, "Did not provide an image filepath!\n");
-        return E_FILE;
+        return E_INVALID_PARAMS;
     }
 
+    const char *filepath;
+
     if (argc < 3) {
-        fprintf(stderr, "Did not provide a filepath to write to!\n");
-        return E_FILE;
+        printf("Did not provide a filepath to write to. Using stdout\n");
+        filepath = NULL;
+    } else {
+        filepath = argv[2];
     }
 
     ascii_t ascii;
+    int ret;
 
-    image_to_ascii(&ascii, argv[1]);
+    if (ret = image_to_ascii(&ascii, argv[1])) {
+        return ret;
+    }
 
-    if (int ret = write_image(&ascii, argv[2])) {
+    if (ret = write_image(&ascii, filepath)) {
         return ret;
     }
 
