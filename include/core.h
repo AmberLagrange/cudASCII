@@ -60,6 +60,10 @@ typedef int32_t  i32;
 #define E_INVALID_COLOR_FORMAT -6
 #endif
 
+#ifndef E_COMPRESSION
+#define E_COMPRESSION -7
+#endif
+
 #define gpu_check_error(code) { gpu_assert((code), __FILE__, __LINE__); }
 inline void gpu_assert(cudaError_t code, const char *file, int line);
 

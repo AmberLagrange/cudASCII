@@ -18,6 +18,11 @@ __host__ int load_bmp(bmp_t *bmp, const char *filepath) {
         return E_FILE_READ;
     }
 
+    if (bmp->header.compression) {
+        fprintf(stderr, "Compression not supported yet.\n");
+        return E_COMPRESSION;
+    }
+
     size_t data_size = bmp->header.file_size - sizeof(bmp_header_t);
     bmp->pixels = (u8*)malloc(data_size);
     data_read = fread(bmp->pixels, 1, data_size, file);
