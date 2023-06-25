@@ -84,14 +84,15 @@ __global__ void convert_to_ascii(ascii_t *ascii, image_t *image, volatile int *e
     }
 
     y_average /= (ascii->scale_width * ascii->scale_height);
-    u_average /= (ascii->scale_width * ascii->scale_height);
-    v_average /= (ascii->scale_width * ascii->scale_height);
-
     y_average = (ascii->dark_mode) ? (255 - y_average) : y_average;
 
     ascii->y_data[thread_row * ascii->width + thread_col] = ascii->char_set[(y_average * (ascii->char_set_size - 1)) / 255];
 
     if (ascii->color_enabled) {
+
+        u_average /= (ascii->scale_width * ascii->scale_height);
+        v_average /= (ascii->scale_width * ascii->scale_height);
+
         ascii->u_data[thread_row * ascii->width + thread_col] = u_average;
         ascii->v_data[thread_row * ascii->width + thread_col] = v_average;
     }
