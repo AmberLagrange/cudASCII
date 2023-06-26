@@ -29,8 +29,8 @@ typedef int32_t  i32;
                                                             // DEFAULT_CHAR_SET is an array of characters and shouldn't
                                                             // be used as a string
 
-#define SCALE_WIDTH  4
-#define SCALE_HEIGHT 4
+#define SCALE_WIDTH  8
+#define SCALE_HEIGHT 8
 
 #define MAX_SIGNATURE_SIZE 256
 

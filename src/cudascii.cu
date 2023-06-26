@@ -75,7 +75,9 @@ __global__ void convert_to_ascii(ascii_t *ascii, image_t *image, volatile int *e
             byte_2 = image->data[(row * image->width + col) * image->bytes_per_pixel + 1];
             byte_3 = image->data[(row * image->width + col) * image->bytes_per_pixel + 2];
 
-            conversion_fn(&byte_1, &byte_2, &byte_3);
+            // 1 3 2
+
+            conversion_fn(&byte_1, &byte_3, &byte_2);
 
             y_average += byte_1;
             u_average += byte_2;
@@ -144,6 +146,45 @@ __host__ int write_image(ascii_t *ascii, const char *filepath) {
     return E_OK;
 }
 
+__host__ int write_color_image(ascii_t *ascii, const char *filepath) {
+
+    FILE *file;
+
+    if (!filepath) {
+        file = stdout;
+    } else {
+        file = fopen(filepath, "w+");
+
+        if (!file) {
+            fprintf(stderr, "Could not write image to file %s: %s\n", filepath, strerror(errno));
+            return E_FILE_WRITE;
+        }
+    }
+
+    if (!ascii->color_enabled) {
+        fprintf(stderr, "Color not enabled\n");
+        return E_COLOR_ENABLED;
+    }
+
+    for (int row = ascii->height - 1; row >= 0 ; --row) {
+        for (int col = 0; col < ascii->width; ++col) {
+
+            u8 r = ascii->y_data[row * ascii->width + col];
+            u8 g = ascii->u_data[row * ascii->width + col];
+            u8 b = ascii->v_data[row * ascii->width + col];
+
+            yuv_to_rgb(&r, &g, &b);
+
+            fprintf(file, "\033[38;2;%d;%d;%dm%c\x1b[0m", r, g, b, ascii->data[row * ascii->width + col]);
+        }
+        fprintf(file, "\n");
+    }
+
+    fclose(file);
+
+    return E_OK;
+}
+
 __host__ int image_to_ascii(ascii_t *h_ascii, const char *filepath) {
 
     // Host image data
@@ -153,7 +194,7 @@ __host__ int image_to_ascii(ascii_t *h_ascii, const char *filepath) {
     }
 
     // Host ascii data
-    init_ascii(h_ascii, h_image.width, SCALE_WIDTH, h_image.height, SCALE_HEIGHT, 1);
+    init_ascii(h_ascii, h_image.width, SCALE_WIDTH, h_image.height, SCALE_HEIGHT, 0);
     enable_color(h_ascii);
 
     // Pointers to data on device
@@ -239,7 +280,7 @@ int main(int argc, char **argv) {
         return ret;
     }
 
-    if (ret = write_image(&ascii, filepath)) {
+    if (ret = write_color_image(&ascii, filepath)) {
         return ret;
     }
 
