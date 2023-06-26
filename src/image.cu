@@ -59,6 +59,7 @@ int __host__ read_image(image_t *image, const char *filepath) {
                 break;
             }
 
+            memset(signature, 0, sizeof(signature));
             signature_size = strlen(image_type.signatures[i]);
             bytes_read = fread(signature, 1, signature_size, file);
             rewind(file);
@@ -69,7 +70,7 @@ int __host__ read_image(image_t *image, const char *filepath) {
                 return E_FILE_READ;
             }
 
-            if (strcmp(image_type.signatures[0], signature) != 0) {
+            if (strcmp(image_type.signatures[i], signature) != 0) {
                 continue;
             }
 
@@ -138,6 +139,6 @@ int __host__ read_png_image(image_t *image, FILE *file) {
 
 int __host__ read_jpg_image(image_t *image, FILE *file) {
 
-    fprintf(stderr, "JPG image format not supported\n");
+    fprintf(stderr, "JPEG image format not supported\n");
     return E_FILE_READ;
 }

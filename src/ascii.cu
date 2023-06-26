@@ -12,7 +12,9 @@ __host__ int init_ascii(ascii_t *ascii, int src_width, int scale_width, int src_
     ascii->color_enabled = 0;
 
     ascii->data_size = ascii->width * ascii->height;
-    ascii->y_data = (char*)malloc(ascii->data_size);
+    ascii->data = (char*)malloc(ascii->data_size);
+
+    ascii->y_data = NULL;
     ascii->u_data = NULL;
     ascii->v_data = NULL;
 
@@ -27,6 +29,8 @@ __host__ int cleanup_ascii(ascii_t *ascii) {
 
     free(ascii->char_set);
 
+    free(ascii->data);
+    
     free(ascii->y_data);
     free(ascii->u_data);
     free(ascii->v_data);
@@ -52,8 +56,9 @@ int enable_color(ascii_t *ascii) {
 
     ascii->color_enabled = 1;
 
-    ascii->u_data = (char*)malloc(ascii->data_size);
-    ascii->v_data = (char*)malloc(ascii->data_size);
+    ascii->y_data = (u8*)malloc(ascii->data_size);
+    ascii->u_data = (u8*)malloc(ascii->data_size);
+    ascii->v_data = (u8*)malloc(ascii->data_size);
 
     return E_OK;
 }
