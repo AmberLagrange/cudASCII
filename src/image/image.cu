@@ -3,10 +3,43 @@
 #include <string.h>
 
 #include "image_types/image_types.h"
+#include "image_types/bmp.h"
 
-// TODO: Add more images
+// Color Format Conversions
 
-int __host__ read_image(image_t *image, const char *filepath) {
+__host__ __device__ void rgb_to_yuv(u8 *byte_1, u8 *byte_2, u8 *byte_3) {
+
+    u8 r = *byte_1;
+    u8 g = *byte_2;
+    u8 b = *byte_3;
+
+    *byte_1 = RGB_TO_Y(r, g, b);
+    *byte_2 = RGB_TO_U(r, g, b);
+    *byte_3 = RGB_TO_V(r, g, b);
+}
+
+__host__ __device__ void yuv_to_rgb(u8 *byte_1, u8 *byte_2, u8 *byte_3) {
+
+    u8 y = *byte_1;
+    u8 u = *byte_2;
+    u8 v = *byte_3;
+
+    *byte_1 = YUV_TO_R(y, u, v);
+    *byte_2 = YUV_TO_G(y, u, v);
+    *byte_3 = YUV_TO_B(y, u, v);
+}
+
+__host__ __device__ void rgb_to_rgb(u8 *byte_1, u8 *byte_2, u8 *byte_3) {
+    // NOP
+}
+
+__host__ __device__ void yuv_to_yuv(u8 *byte_1, u8 *byte_2, u8 *byte_3) {
+    // NOP
+}
+
+// TODO: Add more image types
+
+__host__ int read_image(image_t *image, const char *filepath) {
 
     const char *file_extension = strrchr(filepath, '.');
 
@@ -98,14 +131,14 @@ int __host__ read_image(image_t *image, const char *filepath) {
     return ret;
 }
 
-int __host__ cleanup_image(image_t *image) {
+__host__ int cleanup_image(image_t *image) {
 
     free(image->data);
 
     return E_OK;
 }
 
-int __host__ read_bmp_image(image_t *image, FILE *file) {
+__host__ int read_bmp_image(image_t *image, FILE *file) {
 
     bmp_t bmp;
     bmp.filepath = image->filepath;
@@ -131,13 +164,13 @@ int __host__ read_bmp_image(image_t *image, FILE *file) {
     return E_OK;
 }
 
-int __host__ read_png_image(image_t *image, FILE *file) {
+__host__ int read_png_image(image_t *image, FILE *file) {
 
     fprintf(stderr, "PNG image format not supported\n");
     return E_FILE_READ;
 }
 
-int __host__ read_jpg_image(image_t *image, FILE *file) {
+__host__ int read_jpg_image(image_t *image, FILE *file) {
 
     fprintf(stderr, "JPEG image format not supported\n");
     return E_FILE_READ;

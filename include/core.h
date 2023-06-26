@@ -1,6 +1,8 @@
 #ifndef CORE_H
 #define CORE_H
 
+// TODO: Check for cuda before including these
+
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
@@ -73,9 +75,6 @@ typedef int32_t  i32;
 #ifndef E_INVALID_SIGNATURE
 #define E_INVALID_SIGNATURE -9
 #endif
-
-#define gpu_check_error(code) { gpu_assert((code), __FILE__, __LINE__); }
-inline __host__ void gpu_assert(cudaError_t code, const char *file, int line);
 
 // Taken from https://stackoverflow.com/questions/1737726/how-to-perform-rgb-yuv-conversion-in-c-c
 

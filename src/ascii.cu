@@ -38,7 +38,7 @@ __host__ int cleanup_ascii(ascii_t *ascii) {
     return E_OK;
 }
 
-int set_char_set(ascii_t *ascii, const char *char_set, size_t char_set_size) {
+__host__ int set_char_set(ascii_t *ascii, const char *char_set, size_t char_set_size) {
     
     free(ascii->char_set);
     ascii->char_set_size = char_set_size;
@@ -48,7 +48,7 @@ int set_char_set(ascii_t *ascii, const char *char_set, size_t char_set_size) {
     return E_OK;
 }
 
-int enable_color(ascii_t *ascii) {
+__host__ int enable_color(ascii_t *ascii) {
 
     if (ascii->color_enabled) {
         return E_COLOR_ENABLED;
