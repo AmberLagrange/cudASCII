@@ -1,20 +1,13 @@
 #include "bmp.h"
 
-__host__ int load_bmp(bmp_t *bmp, const char *filepath) {
-
-    FILE *file = fopen(filepath, "rb");
-
-    if (!file) {
-        fprintf(stderr, "Could not read from file %s: %s\n", filepath, strerror(errno));
-        return E_FILE_READ;
-    }
+__host__ int load_bmp(bmp_t *bmp, FILE *file) {
 
     size_t data_read = fread(&(bmp->header), 1, sizeof(bmp_header_t), file);
     if (data_read != sizeof(bmp_header_t)) {
         fprintf(stderr,
-                "Did not read header from %s properly\n"
+                "Did not read header of %s properly\n"
                 "Expected %lu bytes. Read %lu bytes\n",
-                filepath, sizeof(bmp_header_t), data_read);
+                bmp->filepath, sizeof(bmp_header_t), data_read);
         return E_FILE_READ;
     }
 
@@ -23,28 +16,27 @@ __host__ int load_bmp(bmp_t *bmp, const char *filepath) {
     if (bmp->header.compression) {
 
         data_size = decompress_bmp(bmp);
-        if (data_size < 0) {
-            return data_size;
+        if (!data_size) {
+            return E_COMPRESSION;
         }
-        
+
     } else {
         data_size = bmp->header.file_size - sizeof(bmp_header_t);
         bmp->pixels = (u8*)malloc(data_size);
         data_read = fread(bmp->pixels, 1, data_size, file);
         if (data_read != data_size) {
-            fprintf(stderr, "Did not read all data from %s\n", filepath);
+            fprintf(stderr, "Did not read all data from %s\n", bmp->filepath);
             return E_FILE_READ;
         }
     }
 
-    fclose(file);
     return data_size;
 }
 
 __host__ int decompress_bmp(bmp_t *bmp) {
 
     fprintf(stderr, "Compression not supported yet.\n");
-    return E_COMPRESSION;
+    return 0;
 }
 
 __host__ void print_bmp_header(bmp_header_t *header) {

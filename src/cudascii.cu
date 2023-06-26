@@ -5,7 +5,7 @@
 #include "image.h"
 #include "ascii.h"
 
-inline void gpu_assert(cudaError_t code, const char *file, int line) {
+inline __host__ void gpu_assert(cudaError_t code, const char *file, int line) {
    if (code != cudaSuccess) {
       fprintf(stderr,"GPU Assert: %s %s %d\n", cudaGetErrorString(code), file, line);
       exit(code);

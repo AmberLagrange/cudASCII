@@ -29,11 +29,10 @@ typedef int32_t  i32;
                                                             // DEFAULT_CHAR_SET is an array of characters and shouldn't
                                                             // be used as a string
 
-#define BMP_SIGNATURE "\x42\x4D"
-#define PNG_SIGNATURE "\x89\x50\x4E\x47\x0D\x0A\x1A\x0A"
-
 #define SCALE_WIDTH  4
 #define SCALE_HEIGHT 4
+
+#define MAX_SIGNATURE_SIZE 256
 
 #ifndef E_OK
 #define E_OK 0
@@ -67,8 +66,16 @@ typedef int32_t  i32;
 #define E_COMPRESSION -7
 #endif
 
+#ifndef E_INVALID_EXTENSION
+#define E_INVALID_EXTENSION -8
+#endif
+
+#ifndef E_INVALID_SIGNATURE
+#define E_INVALID_SIGNATURE -9
+#endif
+
 #define gpu_check_error(code) { gpu_assert((code), __FILE__, __LINE__); }
-inline void gpu_assert(cudaError_t code, const char *file, int line);
+inline __host__ void gpu_assert(cudaError_t code, const char *file, int line);
 
 // Taken from https://stackoverflow.com/questions/1737726/how-to-perform-rgb-yuv-conversion-in-c-c
 

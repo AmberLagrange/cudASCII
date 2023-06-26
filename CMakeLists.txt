@@ -9,6 +9,7 @@ add_executable("${PROJECT_NAME}"
     src/cudascii.cu
     src/image.cu
     src/ascii.cu
+    src/image_types/image_types.cu
     src/image_types/bmp.cu)
 
 target_precompile_headers(cudASCII PRIVATE include/core.hpp)

@@ -28,10 +28,11 @@ typedef struct bmp_header_t {
 
 typedef struct bmp_t {
     bmp_header_t header;
+    const char *filepath;
     u8 *pixels;
 } bmp_t;
 
-__host__ int load_bmp(bmp_t *bmp, const char *filepath);
+__host__ int load_bmp(bmp_t *bmp, FILE *file);
 __host__ int cleanup_bmp(bmp_t *bmp);
 
 __host__ int decompress_bmp(bmp_t *bmp);
