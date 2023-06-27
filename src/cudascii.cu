@@ -110,8 +110,14 @@ __host__ int main(int argc, char **argv) {
         return ret;
     }
 
-    if (ret = write_color_image(&ascii, filepath)) {
-        return ret;
+    if (ascii.color_enabled) {
+        if (ret = write_color_image(&ascii, filepath)) {
+            return ret;
+        }
+    } else {
+        if (ret = write_image(&ascii, filepath)) {
+            return ret;
+        }
     }
 
     cleanup_ascii(&ascii);

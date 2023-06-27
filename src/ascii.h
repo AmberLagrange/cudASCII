@@ -6,11 +6,11 @@
 #include "image/color_format.h"
 
 typedef struct ascii_t {
-    int scale_width;
-    int scale_height;
+    size_t scale_width;
+    size_t scale_height;
 
-    int width;
-    int height;
+    size_t width;
+    size_t height;
 
     int dark_mode;
     int color_enabled;

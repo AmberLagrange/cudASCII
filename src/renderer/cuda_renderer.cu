@@ -9,7 +9,7 @@ inline __host__ void gpu_assert(cudaError_t code, const char *file, int line) {
    }
 }
 
-__global__ void render_ascii(ascii_t *ascii, image_t *image, volatile int *error) {
+__global__ void render_ascii(ascii_t *ascii, image_t *image, size_t index, volatile int *error) {
 
     int y_average = 0;
     int u_average = 0;
@@ -36,7 +36,7 @@ __global__ void render_ascii(ascii_t *ascii, image_t *image, volatile int *error
             return;
     }
 
-    for (int row = thread_row * ascii->scale_height; row < (thread_row + 1) * ascii->scale_height; ++row) {
+    for (int row = (thread_row + index * MAX_THREADS_PER_BLOCK) * ascii->scale_height; row < (thread_row + index * MAX_THREADS_PER_BLOCK + 1) * ascii->scale_height; ++row) {
         for (int col = thread_col * ascii->scale_width; col < (thread_col + 1) * ascii->scale_width; ++col) {
             byte_1 = image->data[(row * image->width + col) * image->bytes_per_pixel + 0];
             byte_2 = image->data[(row * image->width + col) * image->bytes_per_pixel + 1];
@@ -53,16 +53,16 @@ __global__ void render_ascii(ascii_t *ascii, image_t *image, volatile int *error
     y_average /= (ascii->scale_width * ascii->scale_height);
     y_average = (ascii->dark_mode) ? (255 - y_average) : y_average;
 
-    ascii->data[thread_row * ascii->width + thread_col] = ascii->char_set[(y_average * (ascii->char_set_size - 1)) / 255];
+    ascii->data[(thread_row + index * MAX_THREADS_PER_BLOCK) * ascii->width + thread_col] = ascii->char_set[(y_average * (ascii->char_set_size - 1)) / 255];
 
     if (ascii->color_enabled) {
 
         u_average /= (ascii->scale_width * ascii->scale_height);
         v_average /= (ascii->scale_width * ascii->scale_height);
 
-        ascii->y_data[thread_row * ascii->width + thread_col] = y_average;
-        ascii->u_data[thread_row * ascii->width + thread_col] = u_average;
-        ascii->v_data[thread_row * ascii->width + thread_col] = v_average;
+        ascii->y_data[(thread_row + index * MAX_THREADS_PER_BLOCK) * ascii->width + thread_col] = y_average;
+        ascii->u_data[(thread_row + index * MAX_THREADS_PER_BLOCK) * ascii->width + thread_col] = u_average;
+        ascii->v_data[(thread_row + index * MAX_THREADS_PER_BLOCK) * ascii->width + thread_col] = v_average;
     }
 
     return;
@@ -110,7 +110,16 @@ __host__ int image_to_ascii(ascii_t *h_ascii, const char *filepath) {
     }
 
     // Run the kernel
-    render_ascii<<<d_ascii->width, d_ascii->height>>>(d_ascii, d_image, NULL);
+
+    // First set of threads that are of size MAX_THREADS_PER_BLOCK (1024)
+    size_t index = 0;
+    for (; index < d_ascii->height / MAX_THREADS_PER_BLOCK; ++index) {
+        render_ascii<<<d_ascii->width, MAX_THREADS_PER_BLOCK>>>(d_ascii, d_image, index, NULL);
+        gpu_check_error(cudaPeekAtLastError());
+    }
+
+    // Run the remaining number of threads
+    render_ascii<<<d_ascii->width, d_ascii->height % MAX_THREADS_PER_BLOCK>>>(d_ascii, d_image, index, NULL);
     gpu_check_error(cudaPeekAtLastError());
 
     // Copy ascii data from device to host
