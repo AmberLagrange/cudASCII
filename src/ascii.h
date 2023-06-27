@@ -20,9 +20,9 @@ typedef struct ascii_t {
 
     char *data; /// ASCII Character
 
-    u8 *y_data; // Luminance
-    u8 *u_data; // Blue projection
-    u8 *v_data; // Red projection
+    u8 *r_data;
+    u8 *g_data;
+    u8 *b_data;
     size_t data_size;
 } ascii_t;
 

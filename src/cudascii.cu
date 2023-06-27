@@ -10,8 +10,8 @@ __host__ int test_blank(ascii_t *ascii, const char *greyscale) {
     char blank_character = ascii->dark_mode ? greyscale[0] : greyscale[strlen(greyscale) - 1];
 
     for (int i = 0; i < ascii->data_size; ++i) {
-        if (ascii->y_data[i] != greyscale[0]) {
-            printf("Error! Did not copy over properly!\nIndex %d has value %d\n", i, ascii->y_data[i]);
+        if (ascii->data[i] != greyscale[0]) {
+            printf("Error! Did not copy over properly!\nIndex %d has value %d\n", i, ascii->data[i]);
             return E_TEST_FAILED;
         }
     }
@@ -71,13 +71,13 @@ __host__ int write_color_image(ascii_t *ascii, const char *filepath) {
     for (int row = ascii->height - 1; row >= 0 ; --row) {
         for (int col = 0; col < ascii->width; ++col) {
 
-            u8 r = ascii->y_data[row * ascii->width + col];
-            u8 g = ascii->u_data[row * ascii->width + col];
-            u8 b = ascii->v_data[row * ascii->width + col];
+            u8 r = ascii->r_data[row * ascii->width + col];
+            u8 g = ascii->g_data[row * ascii->width + col];
+            u8 b = ascii->b_data[row * ascii->width + col];
 
-            yuv_to_rgb(&r, &g, &b);
+            char c = ascii->data[row * ascii->width + col];
 
-            fprintf(file, "\033[38;2;%d;%d;%dm%c\x1b[0m", r, g, b, ascii->data[row * ascii->width + col]);
+            fprintf(file, "\033[38;2;%d;%d;%dm%c\x1b[0m", r, g, b, c);
         }
         fprintf(file, "\n");
     }
@@ -105,7 +105,7 @@ __host__ int main(int argc, char **argv) {
     ascii_t ascii;
     int ret;
 
-    init_ascii(&ascii, 400, 225, 0);
+    init_ascii(&ascii, 1920 / 4, 2560 / 4, 0);
     enable_color(&ascii);
 
     if (ret = image_to_ascii(&ascii, argv[1])) {

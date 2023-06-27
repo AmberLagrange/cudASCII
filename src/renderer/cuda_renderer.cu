@@ -12,8 +12,9 @@ inline __host__ void gpu_assert(cudaError_t code, const char *file, int line) {
 __global__ void render_ascii(ascii_t *ascii, image_t *image, size_t index, volatile int *error) {
 
     int y_average = 0;
-    int u_average = 0;
-    int v_average = 0;
+    int r_average = 0;
+    int g_average = 0;
+    int b_average = 0;
 
     int thread_row = threadIdx.x;
     int thread_col = blockIdx.x;
@@ -42,11 +43,13 @@ __global__ void render_ascii(ascii_t *ascii, image_t *image, size_t index, volat
             byte_2 = image->data[(row * image->width + col) * image->bytes_per_pixel + 1];
             byte_3 = image->data[(row * image->width + col) * image->bytes_per_pixel + 2];
 
-            conversion_fn(&byte_1, &byte_3, &byte_2);
+            r_average += byte_3;
+            g_average += byte_2;
+            b_average += byte_1;
 
-            y_average += byte_1;
-            u_average += byte_2;
-            v_average += byte_3;
+            conversion_fn(&byte_3, &byte_2, &byte_1);
+
+            y_average += byte_3;
         }
     }
 
@@ -57,12 +60,13 @@ __global__ void render_ascii(ascii_t *ascii, image_t *image, size_t index, volat
 
     if (ascii->color_enabled) {
 
-        u_average /= (ascii->scale_width * ascii->scale_height);
-        v_average /= (ascii->scale_width * ascii->scale_height);
+        r_average /= (ascii->scale_width * ascii->scale_height);
+        g_average /= (ascii->scale_width * ascii->scale_height);
+        b_average /= (ascii->scale_width * ascii->scale_height);
 
-        ascii->y_data[(thread_row + index * MAX_THREADS_PER_BLOCK) * ascii->width + thread_col] = y_average;
-        ascii->u_data[(thread_row + index * MAX_THREADS_PER_BLOCK) * ascii->width + thread_col] = u_average;
-        ascii->v_data[(thread_row + index * MAX_THREADS_PER_BLOCK) * ascii->width + thread_col] = v_average;
+        ascii->r_data[(thread_row + index * MAX_THREADS_PER_BLOCK) * ascii->width + thread_col] = r_average;
+        ascii->g_data[(thread_row + index * MAX_THREADS_PER_BLOCK) * ascii->width + thread_col] = g_average;
+        ascii->b_data[(thread_row + index * MAX_THREADS_PER_BLOCK) * ascii->width + thread_col] = b_average;
     }
 
     return;
@@ -103,9 +107,9 @@ __host__ int image_to_ascii(ascii_t *h_ascii, const char *filepath) {
     gpu_check_error(cudaMallocHost(&(d_ascii->data), d_ascii->data_size));
 
     if (d_ascii->color_enabled) {
-        gpu_check_error(cudaMallocHost(&(d_ascii->y_data), d_ascii->data_size));
-        gpu_check_error(cudaMallocHost(&(d_ascii->u_data), d_ascii->data_size));
-        gpu_check_error(cudaMallocHost(&(d_ascii->v_data), d_ascii->data_size));
+        gpu_check_error(cudaMallocHost(&(d_ascii->r_data), d_ascii->data_size));
+        gpu_check_error(cudaMallocHost(&(d_ascii->g_data), d_ascii->data_size));
+        gpu_check_error(cudaMallocHost(&(d_ascii->b_data), d_ascii->data_size));
     }
 
     // Run the kernel
@@ -125,15 +129,15 @@ __host__ int image_to_ascii(ascii_t *h_ascii, const char *filepath) {
     gpu_check_error(cudaMemcpy(h_ascii->data, d_ascii->data, h_ascii->data_size, cudaMemcpyDeviceToHost));
 
     if (d_ascii->color_enabled) {
-        gpu_check_error(cudaMemcpy(h_ascii->y_data, d_ascii->y_data, h_ascii->data_size, cudaMemcpyDeviceToHost));
-        gpu_check_error(cudaMemcpy(h_ascii->u_data, d_ascii->u_data, h_ascii->data_size, cudaMemcpyDeviceToHost));
-        gpu_check_error(cudaMemcpy(h_ascii->v_data, d_ascii->v_data, h_ascii->data_size, cudaMemcpyDeviceToHost));
+        gpu_check_error(cudaMemcpy(h_ascii->r_data, d_ascii->r_data, h_ascii->data_size, cudaMemcpyDeviceToHost));
+        gpu_check_error(cudaMemcpy(h_ascii->g_data, d_ascii->g_data, h_ascii->data_size, cudaMemcpyDeviceToHost));
+        gpu_check_error(cudaMemcpy(h_ascii->b_data, d_ascii->b_data, h_ascii->data_size, cudaMemcpyDeviceToHost));
     }
     
     // Clean up cuda memory
-    gpu_check_error(cudaFreeHost(d_ascii->v_data));
-    gpu_check_error(cudaFreeHost(d_ascii->u_data));
-    gpu_check_error(cudaFreeHost(d_ascii->y_data));
+    gpu_check_error(cudaFreeHost(d_ascii->b_data));
+    gpu_check_error(cudaFreeHost(d_ascii->g_data));
+    gpu_check_error(cudaFreeHost(d_ascii->r_data));
     gpu_check_error(cudaFreeHost(d_ascii->data));
     gpu_check_error(cudaFreeHost(d_ascii->char_set));
     gpu_check_error(cudaFreeHost(d_ascii));
