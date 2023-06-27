@@ -76,9 +76,8 @@ __host__ int image_to_ascii(ascii_t *h_ascii, const char *filepath) {
         return ret;
     }
 
-    // Host ascii data
-    init_ascii(h_ascii, h_image.width, SCALE_WIDTH, h_image.height, SCALE_HEIGHT, 0);
-    enable_color(h_ascii);
+    h_ascii->scale_width = h_image.width / h_ascii->width;
+    h_ascii->scale_height = h_image.height / h_ascii->height;
 
     // Pointers to data on device
     image_t *d_image;

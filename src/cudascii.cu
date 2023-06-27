@@ -94,17 +94,19 @@ __host__ int main(int argc, char **argv) {
         return E_INVALID_PARAMS;
     }
 
-    const char *filepath;
+    const char *filepath = NULL;
 
     if (argc < 3) {
         printf("Did not provide a filepath to write to. Using stdout\n");
-        filepath = NULL;
     } else {
         filepath = argv[2];
     }
 
     ascii_t ascii;
     int ret;
+
+    init_ascii(&ascii, 400, 225, 0);
+    enable_color(&ascii);
 
     if (ret = image_to_ascii(&ascii, argv[1])) {
         return ret;

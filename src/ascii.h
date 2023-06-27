@@ -26,7 +26,7 @@ typedef struct ascii_t {
     size_t data_size;
 } ascii_t;
 
-__host__ int init_ascii(ascii_t *ascii, int src_width, int scale_width, int src_height, int scale_height, int dark_mode);
+__host__ int init_ascii(ascii_t *ascii, size_t width, size_t height, int dark_mode);
 __host__ int cleanup_ascii(ascii_t *ascii);
 
 __host__ int set_char_set(ascii_t *ascii, const char* char_set);

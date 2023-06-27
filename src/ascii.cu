@@ -1,12 +1,12 @@
 #include "ascii.h"
 
-__host__ int init_ascii(ascii_t *ascii, int src_width, int scale_width, int src_height, int scale_height, int dark_mode) {
+__host__ int init_ascii(ascii_t *ascii, size_t width, size_t height, int dark_mode) {
 
-    ascii->scale_width = scale_width;
-    ascii->scale_height = scale_height;
+    ascii->scale_width = 0;
+    ascii->scale_height = 0;
 
-    ascii->width = src_width / scale_width;
-    ascii->height = src_height / scale_height;
+    ascii->width = width;
+    ascii->height = height;
 
     ascii->dark_mode = dark_mode;
     ascii->color_enabled = 0;
