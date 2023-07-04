@@ -94,19 +94,36 @@ __host__ int main(int argc, char **argv) {
         return E_INVALID_PARAMS;
     }
 
-    const char *filepath = NULL;
-
     if (argc < 3) {
+        fprintf(stderr, "Did not provide ascii width\n");
+        return E_INVALID_PARAMS;
+    }
+
+    if (argc < 4) {
+        fprintf(stderr, "Did not provide ascii height\n");
+        return E_INVALID_PARAMS;
+    }
+
+    int width = atoi(argv[2]);
+    int height = atoi(argv[3]);
+
+    if (!width || !height) {
+        fprintf(stderr, "Invalid width and height. Expected values greater than 0. Given: %dx%d\n", width, height);
+        return E_INVALID_PARAMS;
+    }
+
+    const char *filepath = NULL;
+    if (argc < 5) {
         printf("Did not provide a filepath to write to. Using stdout\n");
     } else {
-        filepath = argv[2];
+        filepath = argv[4];
     }
 
     ascii_t ascii;
     int ret;
 
-    init_ascii(&ascii, 1920 / 4, 2560 / 4, 0);
-    enable_color(&ascii);
+    init_ascii(&ascii, width, height, 0);
+    //enable_color(&ascii);
 
     if (ret = image_to_ascii(&ascii, argv[1])) {
         return ret;

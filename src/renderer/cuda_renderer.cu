@@ -37,8 +37,8 @@ __global__ void render_ascii(ascii_t *ascii, image_t *image, size_t index, volat
             return;
     }
 
-    for (int row = (thread_row + index * MAX_THREADS_PER_BLOCK) * ascii->scale_height; row < (thread_row + index * MAX_THREADS_PER_BLOCK + 1) * ascii->scale_height; ++row) {
-        for (int col = thread_col * ascii->scale_width; col < (thread_col + 1) * ascii->scale_width; ++col) {
+    for (size_t row = (thread_row + index * MAX_THREADS_PER_BLOCK) * ascii->scale_height; row < (thread_row + index * MAX_THREADS_PER_BLOCK + 1) * ascii->scale_height; ++row) {
+        for (size_t col = thread_col * ascii->scale_width; col < (thread_col + 1) * ascii->scale_width; ++col) {
             byte_1 = image->data[(row * image->width + col) * image->bytes_per_pixel + 0];
             byte_2 = image->data[(row * image->width + col) * image->bytes_per_pixel + 1];
             byte_3 = image->data[(row * image->width + col) * image->bytes_per_pixel + 2];
